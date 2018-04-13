@@ -69,13 +69,10 @@ class LocationTools {
   final Location location = new Location();
 
   Future<Map<String, double>> getLocation() {
-    return location.getLocation;
+    return null;
   }
 
   void initListener(LocationCallback callback) {
-    location.onLocationChanged.listen((Map<String, double> currentLocation) {
-      callback(currentLocation);
-    });
   }
 }
 
@@ -85,28 +82,11 @@ class AudioTools {
   AudioTools() : _audioPlayer = new AudioPlayer();
 
   void initAudioLoop(String audioFile) {
-    // restart audio if it has finished
-    _audioPlayer.setCompletionHandler(() {
-      _audioPlayer.play(audioFile);
-    });
-    // restart audio if it has been playing for at least 3 seconds
-    _audioPlayer.setPositionHandler((Duration d) {
-      if (d.inSeconds > 3) {
-        playNewAudio(audioFile);
-      }
-    });
-    _audioPlayer.play(audioFile);
   }
 
   void playNewAudio(String audioFile) {
-    _audioPlayer.stop().then((result) {
-      _audioPlayer.play(audioFile);
-    });
   }
 
   void stopAudio() {
-    _audioPlayer.setCompletionHandler(() {});
-    _audioPlayer.setPositionHandler((Duration d) {});
-    _audioPlayer.stop();
   }
 }

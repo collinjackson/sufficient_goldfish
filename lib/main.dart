@@ -43,33 +43,11 @@ class MatchPageState extends State<MatchPage> {
   }
 
   fetchMatchData() {
-    String query = _nonMatches.join('&id=');
-    http.get(cloudFunctionUrl + query).then((response) {
-      var suggestedMatches = json.decode(response.body);
-      setState(() {
-        _potentialMatches = suggestedMatches
-            .map<MatchData>(
-                (matchData) => new MatchData.parseResponse(matchData))
-            .toList();
-      });
-    });
   }
 
   @override
   Widget build(BuildContext context) {
     Widget body;
-    if (_potentialMatches.isEmpty) {
-      body = new Center(
-          child: new Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-            new CircularProgressIndicator(),
-            new Text('Gone Fishing...'),
-          ]));
-    } else {
-      body = new CoverFlow(widgetBuilder, dismissedCallback: disposeDismissed);
-    }
-
     return new Scaffold(
       appBar: new AppBar(
         title: new Text('Sufficient Goldfish'),
@@ -81,37 +59,18 @@ class MatchPageState extends State<MatchPage> {
   }
 
   Widget buildFab(BuildContext context) {
-    return new FloatingActionButton(
-        onPressed: () {
-          _saveLocation(context);
-        },
-        child: new Icon(Icons.add_location));
+    return new Container();
   }
 
   Future<Null> _saveLocation(BuildContext context) async {
-    Map<String, double> currentLocation =
-    await new LocationTools().getLocation();
-    // Make dummy profile data.
-    var myData = new MatchData(_myProfile.documentID);
-    myData.targetLongitude = currentLocation['latitude'];
-    myData.targetLatitude = currentLocation['longitude'];
-
-    await _myProfile.setData(myData.serialize(), SetOptions.merge);
-    Scaffold.of(context).showSnackBar(new SnackBar(content: new Text('Location saved!')));
   }
 
   Widget widgetBuilder(BuildContext context, int index) {
-    if (_potentialMatches.length == 0) {
-      return new Center(child: new Text('You rejected all of your matches!'));
-    } else {
-      return new ProfileCard(
-          _potentialMatches[index % _potentialMatches.length]);
-    }
+    return new Container();
   }
 
 
   disposeDismissed(int card, DismissDirection direction) {
-    _potentialMatches.removeAt(card % _potentialMatches.length);
   }
 }
 
@@ -128,17 +87,6 @@ class ProfileCard extends StatelessWidget {
       child: new Column(children: <Widget>[
         new Expanded(flex: 1, child: showProfilePicture(data)),
         _showData(data.name, data.favoriteMusic, data.favoritePh),
-        new RaisedButton.icon(
-            color: Colors.green,
-            icon: new Icon(Icons.check),
-            label: new Text('Meet'),
-            onPressed: () {
-              Navigator.of(context).push(
-                  new MaterialPageRoute<Null>(builder: (BuildContext context) {
-                return new FinderPage(
-                    data.targetLatitude, data.targetLongitude);
-              }));
-            }),
       ]),
     ));
   }
@@ -151,18 +99,11 @@ class ProfileCard extends StatelessWidget {
     Text phWidget = new Text('Favorite pH: $pH',
         style: new TextStyle(fontStyle: FontStyle.italic, fontSize: 16.0));
     List<Widget> children = [nameWidget, musicWidget, phWidget];
-    return new Column(
-        children: children
-            .map((child) =>
-                new Padding(child: child, padding: new EdgeInsets.all(8.0)))
-            .toList());
+    return new Container();
   }
 
   Widget showProfilePicture(MatchData matchData) {
-    return new Image.network(
-      matchData.profilePicture.toString(),
-      fit: BoxFit.cover,
-    );
+    return new Container();
   }
 }
 
@@ -189,11 +130,6 @@ class _FinderPageState extends State<FinderPage> {
       'https://freesound.org/data/previews/397/397354_4284968-lq.mp3';
 
   _FinderPageState(this.audioTools) {
-    locationTools = new LocationTools();
-    locationTools.getLocation().then((Map<String, double> currentLocation) {
-      _updateLocation(currentLocation);
-    });
-    locationTools.initListener(_updateLocation);
     audioTools.initAudioLoop(searchingAudio);
   }
 
@@ -220,10 +156,6 @@ class _FinderPageState extends State<FinderPage> {
       longitudeDiff = 1.0;
     }
     double diff = (latitudeDiff + longitudeDiff) / 2;
-    if (diff < 0.1) {
-      audioTools.stopAudio();
-      audioTools.playNewAudio(foundAudio);
-    }
     return diff;
   }
 
@@ -244,18 +176,6 @@ class _FinderPageState extends State<FinderPage> {
                   color: Colors.black,
                   fontSize: 32.0,
                   decoration: TextDecoration.none),
-            ),
-            new Image.asset('assets/location_ping.gif'),
-            new FloatingActionButton.extended(
-              icon: new Icon(Icons.cancel, color: Colors.black),
-              label: new Text(
-                'Cancel',
-                style: new TextStyle(color: Colors.black, fontSize: 24.0),
-              ),
-              onPressed: () {
-                audioTools.stopAudio();
-                Navigator.pop(context);
-              },
             ),
           ]),
     );
