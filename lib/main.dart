@@ -81,23 +81,10 @@ class MatchPageState extends State<MatchPage> {
   }
 
   Widget buildFab(BuildContext context) {
-    return new FloatingActionButton(
-        onPressed: () {
-          _saveLocation(context);
-        },
-        child: new Icon(Icons.add_location));
+    return new Container();
   }
 
   Future<Null> _saveLocation(BuildContext context) async {
-    Map<String, double> currentLocation =
-    await new LocationTools().getLocation();
-    // Make dummy profile data.
-    var myData = new MatchData(_myProfile.documentID);
-    myData.targetLongitude = currentLocation['latitude'];
-    myData.targetLatitude = currentLocation['longitude'];
-
-    await _myProfile.setData(myData.serialize(), SetOptions.merge);
-    Scaffold.of(context).showSnackBar(new SnackBar(content: new Text('Location saved!')));
   }
 
   Widget widgetBuilder(BuildContext context, int index) {
@@ -194,7 +181,6 @@ class _FinderPageState extends State<FinderPage> {
       _updateLocation(currentLocation);
     });
     locationTools.initListener(_updateLocation);
-    audioTools.initAudioLoop(searchingAudio);
   }
 
   void _updateLocation(Map<String, double> currentLocation) {
@@ -220,10 +206,6 @@ class _FinderPageState extends State<FinderPage> {
       longitudeDiff = 1.0;
     }
     double diff = (latitudeDiff + longitudeDiff) / 2;
-    if (diff < 0.1) {
-      audioTools.stopAudio();
-      audioTools.playNewAudio(foundAudio);
-    }
     return diff;
   }
 
@@ -244,18 +226,6 @@ class _FinderPageState extends State<FinderPage> {
                   color: Colors.black,
                   fontSize: 32.0,
                   decoration: TextDecoration.none),
-            ),
-            new Image.asset('assets/location_ping.gif'),
-            new FloatingActionButton.extended(
-              icon: new Icon(Icons.cancel, color: Colors.black),
-              label: new Text(
-                'Cancel',
-                style: new TextStyle(color: Colors.black, fontSize: 24.0),
-              ),
-              onPressed: () {
-                audioTools.stopAudio();
-                Navigator.pop(context);
-              },
             ),
           ]),
     );
