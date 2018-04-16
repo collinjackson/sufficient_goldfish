@@ -29,7 +29,7 @@ dev_dependencies:
 flutter:
   assets:
     - assets/location_ping.gif
-    - assets/fish-silhouette.png
+    - assets/angelfish-silhouette-small.png
 
 
   # The following line ensures that the Material Icons font is

@@ -106,7 +106,7 @@ class _ProfilePictureState extends State<ProfilePicture> {
   Widget build(BuildContext context) {
     var image = new Card(
         child: _imageFile == null
-            ? new Image.asset('assets/fish-silhouette.png')
+            ? new Image.asset('assets/angelfish-silhouette-small.png')
             : (_imageFile.toString().startsWith('http')
                 ? new Image.network(_imageFile.toString(), fit: BoxFit.cover)
                 : new Image.file(new File.fromUri(_imageFile),
