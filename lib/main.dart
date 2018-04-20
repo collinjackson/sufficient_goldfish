@@ -174,15 +174,27 @@ class ProfileCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      color: isReserved ? Colors.white30 : Colors.white,
-      child: Column(children: _getCardContents()),
-    );
+    return Material(
+        child: InkWell(
+            onTap: () {
+              Navigator.of(context).push(
+                  MaterialPageRoute<Null>(builder: (BuildContext context) {
+                return Material(
+                    child: InkWell(
+                        child: _showProfilePicture(data),
+                        onTap: () => Navigator.pop(context)));
+              }));
+            },
+            child: Card(
+              color: isReserved ? Colors.white30 : Colors.white,
+              child: Column(children: _getCardContents()),
+            )),
+        color: Colors.transparent);
   }
 
   List<Widget> _getCardContents() {
     List<Widget> contents = <Widget>[
-      _showProfilePicture(data),
+      Expanded(child: _showProfilePicture(data)),
       _showData(data.name, data.favoriteMusic, data.favoritePh),
     ];
     contents.add(Row(children: [
@@ -220,11 +232,11 @@ class ProfileCard extends StatelessWidget {
   }
 
   Widget _showProfilePicture(FishData fishData) {
-    return Expanded(
-      child: Image.network(
-        fishData.profilePicture,
-        fit: BoxFit.cover,
-      ),
-    );
+    return Hero(
+        child: Image.network(
+          fishData.profilePicture,
+          fit: BoxFit.cover,
+        ),
+        tag: fishData.name);
   }
 }
