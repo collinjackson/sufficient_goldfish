@@ -40,8 +40,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-enum ViewType { available, reserved }
-
 class FishPage extends StatefulWidget {
   final String deviceId;
 
@@ -53,7 +51,6 @@ class FishPage extends StatefulWidget {
 
 class FishPageState extends State<FishPage> {
   DocumentSnapshot _undoData;
-  ViewType _viewType = ViewType.available;
 
   @override
   void initState() {
@@ -61,11 +58,7 @@ class FishPageState extends State<FishPage> {
     accelerometerEvents.listen((AccelerometerEvent event) {
       if (event.y.abs() >= 20 && _undoData != null) {
         // Shake-to-undo last action.
-        if (_viewType == ViewType.available) {
-          _removeFish(_undoData);
-        } else {
-          _reserveFish(_undoData);
-        }
+        _removeFish(_undoData);
         _undoData = null;
       }
     });
@@ -78,7 +71,7 @@ class FishPageState extends State<FishPage> {
       await audioTools.loadFile(dismissedAudio, dismissedName);
       await audioTools.loadFile(savedAudio, savedName);
     }), builder: (context, AsyncSnapshot snapshot) {
-      switch(snapshot.connectionState) {
+      switch (snapshot.connectionState) {
         case ConnectionState.done:
           audioTools.initAudioLoop(baseName);
           return StreamBuilder<QuerySnapshot>(
@@ -86,47 +79,34 @@ class FishPageState extends State<FishPage> {
               builder: (BuildContext context,
                   AsyncSnapshot<QuerySnapshot> snapshot) {
                 if (snapshot.hasData) {
-                  var fishList = snapshot.data.documents.where((DocumentSnapshot aDoc) {
-                    if (_viewType == ViewType.available) {
-                      return aDoc.data[reservedBy] == widget.deviceId ||
-                          !aDoc.data.containsKey(reservedBy);
-                    } else {
-                      return aDoc.data[reservedBy] == widget.deviceId;
-                    }
+                  var fishList =
+                      snapshot.data.documents.where((DocumentSnapshot aDoc) {
+                    return aDoc.data[reservedBy] == widget.deviceId ||
+                        !aDoc.data.containsKey(reservedBy);
                   }).toList();
-                  if (fishList.length > 0) return new FishOptionsView(fishList, widget.deviceId, _viewType, _reserveFish, _removeFish);
+                  if (fishList.length > 0)
+                    return new FishOptionsView(
+                        fishList, widget.deviceId, _reserveFish, _removeFish);
                 }
                 return Center(
-                    child: const Text('There are plenty of fish in the sea...'));
+                    child:
+                        const Text('There are plenty of fish in the sea...'));
               });
         default:
           return Center(
-              child:
-              Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+              child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
                 CircularProgressIndicator(),
                 Text('Gone Fishing...'),
               ]));
       }
-    } );
+    });
 
     return Scaffold(
         appBar: AppBar(
-          leading: IconButton(
-            icon: new Icon(Icons.home),
-            onPressed: () => setState(() => _viewType = ViewType.available),
-          ),
-          title: Text(_viewType == ViewType.available
-              ? 'Sufficient Goldfish'
-              : 'Saved Fish'),
+          title: Text('Sufficient Goldfish'),
           backgroundColor: Colors.indigo,
-          actions: <Widget>[
-            FlatButton.icon(
-              icon: Icon(Icons.shopping_basket),
-              label: Text('Cart'),
-              textColor: Colors.white,
-              onPressed: () => setState(() => _viewType = ViewType.reserved),
-            )
-          ],
         ),
         body: Container(
             decoration: new BoxDecoration(
@@ -154,10 +134,10 @@ class FishOptionsView extends StatelessWidget {
   final List<DocumentSnapshot> _fishList;
   final Function onAddedCallback;
   final Function onRemovedCallback;
-  final ViewType _viewType;
 
   // NB: This assumes _fishList != null && _fishList.length > 0.
-  FishOptionsView(this._fishList, this.deviceId, this._viewType, this.onAddedCallback, this.onRemovedCallback);
+  FishOptionsView(this._fishList, this.deviceId, this.onAddedCallback,
+      this.onRemovedCallback);
 
   @override
   Widget build(BuildContext context) {
@@ -167,9 +147,8 @@ class FishOptionsView extends StatelessWidget {
           var isReserved = fishOfInterest.data[reservedBy] == deviceId;
           return ProfileCard(
               FishData.parseData(fishOfInterest),
-              _viewType,
-                  () => onAddedCallback(fishOfInterest),
-                  () => onRemovedCallback(fishOfInterest),
+              () => onAddedCallback(fishOfInterest),
+              () => onRemovedCallback(fishOfInterest),
               isReserved);
         },
         dismissedCallback: (int card, DismissDirection direction) =>
@@ -180,31 +159,23 @@ class FishOptionsView extends StatelessWidget {
   onDismissed(int card, _) {
     audioTools.playAudio(dismissedName);
     DocumentSnapshot fishOfInterest = _fishList[card];
-    if (_viewType == ViewType.reserved) {
-      // Write this fish back to the list of available fish in Firebase.
-      onRemovedCallback(fishOfInterest);
-    }
     //_undoData = fishOfInterest;
   }
-
 }
 
 class ProfileCard extends StatelessWidget {
   final FishData data;
-  final ViewType viewType;
   final Function onAddedCallback;
   final Function onRemovedCallback;
   final bool isReserved;
 
-  ProfileCard(this.data, this.viewType, this.onAddedCallback,
-      this.onRemovedCallback, this.isReserved);
+  ProfileCard(
+      this.data, this.onAddedCallback, this.onRemovedCallback, this.isReserved);
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: isReserved && viewType == ViewType.available
-          ? Colors.white30
-          : Colors.white,
+      color: isReserved ? Colors.white30 : Colors.white,
       child: Column(children: _getCardContents()),
     );
   }
@@ -214,19 +185,17 @@ class ProfileCard extends StatelessWidget {
       _showProfilePicture(data),
       _showData(data.name, data.favoriteMusic, data.favoritePh),
     ];
-    if (viewType == ViewType.available) {
-      contents.add(Row(children: [
-        Expanded(
-            child: FlatButton.icon(
-                color: isReserved ? Colors.red : Colors.green,
-                icon: Icon(isReserved ? Icons.not_interested : Icons.check),
-                label: Text(isReserved ? 'Remove' : 'Add'),
-                onPressed: () {
-                  audioTools.playAudio(savedName);
-                  isReserved ? onRemovedCallback() : onAddedCallback();
-                }))
-      ]));
-    }
+    contents.add(Row(children: [
+      Expanded(
+          child: FlatButton.icon(
+              color: isReserved ? Colors.red : Colors.green,
+              icon: Icon(isReserved ? Icons.not_interested : Icons.check),
+              label: Text(isReserved ? 'Remove' : 'Add'),
+              onPressed: () {
+                audioTools.playAudio(isReserved ? dismissedName : savedName);
+                isReserved ? onRemovedCallback() : onAddedCallback();
+              }))
+    ]));
     return contents;
   }
 

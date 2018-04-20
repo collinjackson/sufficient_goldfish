@@ -28,14 +28,12 @@ class FishData {
   factory FishData(String id) => FishData.data(id);
 
   FishData.data(this.id,
-      [this.name,
-      this.favoriteMusic,
-      this.favoritePh,
-      String profilePicture]) {
+      [this.name, this.favoriteMusic, this.favoritePh, String profilePicture]) {
     this.name ??= 'Frank';
     this.favoriteMusic ??= 'Blubstep';
     this.favoritePh ??= '7.0';
-    this.profilePicture = profilePicture == null ? defaultImage : profilePicture;
+    this.profilePicture =
+        profilePicture == null ? defaultImage : profilePicture;
   }
 
   factory FishData.parseData(DocumentSnapshot document) => FishData.data(
